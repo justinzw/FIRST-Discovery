@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Recognize someone - Play a custom sound</title>
+		<script src="../Assets/jquery.min.js"></script>
+		<script src="../Assets/lightClient.js"></script>
+		<script src="../Assets/lightSocket.js"></script>
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<div id="page-wrapper">
+			<h1>Recognize someone, Then play a custom sound!</h1>
+			<div>
+				<h3>Connect to Robot: </h3>
+				<input type="text" id="ip-address" placeholder="IP Address" required />
+				<button type="button" id="connect">Connect</button>
+			</div>
+			<h3>Train Faces: </h3>
+			<div id="command">
+				<p>Before Misty can recognize individuals, she must be able to get a good look at them.</p>
+				<p>Train a new face by adding a name and clicking 'Train'</p>
+				<input type="text" id="new-name" placeholder="Name" required />
+				<button type="button" id="train">Train!</button>
+			</div>
+			<h3>Look for People: </h3>
+			<div id="command">
+				<p>Have Misty look for people she knows, then play a specific audio file when a they are recognized.</p>
+				<button type="button" id="start">Start</button>
+				<button type="button" id="stop">Stop</button>
+			</div>
+			<h3>Console: </h3>
+			<textarea id="results"></textarea>
+		</div>
+		<footer>Activity 2</footer>
+		<script src="mistyCode.js"></script>
+	</body>
+</html>
