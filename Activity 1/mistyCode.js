@@ -16,12 +16,20 @@ var msg = {
   "$id": "1",
   "Operation": "subscribe",
   "Type": "FaceDetection",
-  "DebounceMs": 100,
+  "DebounceMs": 1500,
 	"EventName": "FaceDetection",
   "Message": ""
 };
 
+var unsubscribeMsg = {
+  "$id": "1",
+  "Operation": "unsubscribe",
+  "EventName": "FaceDetection",
+  "Message": ""
+};
+
 var message = JSON.stringify(msg);
+var unsubscribeMessage = JSON.stringify(unsubscribeMsg);
 var messageCount = 0;
 var socket;
 
@@ -60,7 +68,7 @@ stop.onclick = function() {
 //This function is what created the connection to the robot and begins looking for a face
 function startFaceDetection() {
     //Create a new websocket, if one is not already open
-    socket = socket ? socket : new WebSocket("ws://" + ip + "/pubsub");
+    socket = new WebSocket("ws://" + ip + "/pubsub");
     
     //When the socket is open, send the message
     socket.onopen = function(event) {
@@ -115,8 +123,13 @@ function validateIPAddress(ip) {
 //This function will stop Misty looking for a 
 function stopFaceDetection() {
   client.PostCommand("beta/faces/detection/stop");
-  printToScreen("Face detection stopped.");
-  socket.close();
+
+  if(socket) {
+    socket.send(unsubscribeMessage);
+    printToScreen("Face detection stopped.");  
+    //socket.close();
+  }
+
   messageCount = 0;
 }
 
