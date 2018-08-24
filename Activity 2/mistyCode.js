@@ -4,9 +4,8 @@
 
 //Try changing what sound Misty Plays when she recognizes a specific person!
 var knownPerson = { "AssetId": "001-OooOooo.wav", };
-var knownPerson1 = { "AssetId": "001-OooOooo.wav", };
-var knownPerson2 = { "AssetId": "001-OooOooo.wav", };
-
+var knownPerson1 = { "AssetId": "002-Ahhh.wav", };
+var knownPerson2 = { "AssetId": "005-Sigh-02.wav", };
 
 var ipAddress  = document.getElementById("ip-address");
 var connect = document.getElementById("connect");
@@ -18,25 +17,25 @@ var client;
 var ip;
 var payload;
 var newName;
-// var msg = {
-//   "$id": "1",
-//   "Operation": "subscribe",
-//   "Type": "FaceDetection",
-//   "DebounceMs": 100,
-// 	"EventName": "FaceDetection",
-//   "Message": ""
-// };
 
 var msg = {
   "$id": "1",
   "Operation": "subscribe",
   "Type": "FaceRecognition",
-  "DebounceMs": 100,
-  "EventName": "FaceRecognition",
+  "DebounceMs": 1500,
+  "EventName": "FaceRecognition2",
+  "Message": ""
+};
+
+var unsubscribeMsg = {
+  "$id": "1",
+  "Operation": "unsubscribe",
+  "EventName": "FaceRecognition2",
   "Message": ""
 };
 
 var message = JSON.stringify(msg);
+var unsubscribeMessage = JSON.stringify(unsubscribeMsg);
 var messageCount = 0;
 var socket;
 
@@ -53,7 +52,7 @@ connect.onclick = function() {
   }
   client = new LightClient(ip, 10000);
   client.GetCommand("info/device", function(data) {
-    printToScreen("Connected to robot.");
+    printToScreen("Connected to the robot.");
     console.log(data);
   });
 };
@@ -80,6 +79,10 @@ train.onclick = function() {
     printToScreen("Need a name to train someone new!");
     return;
   }
+  if(newName.includes(" ") || !isValid(newName)) {
+    printToScreen("The name cannot contain spaces or special characters!");
+    return;
+  }
 
   //Train Face with name
   client = new LightClient(ip, 10000);
@@ -91,9 +94,12 @@ train.onclick = function() {
   // printToScreen(payload);
 
   client.PostCommand("beta/faces/training/start", payload);
-  printToScreen("Training '" + newName + ".' Please don't move for 10 seconds!")
+  printToScreen("Training '" + newName + ".' Please look at Misty's face and don't move for 15 seconds!")
 };
 
+function isValid(str){
+  return !/[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?]/g.test(str);
+ }
 
 //This function will start Misty looking for known faces and will respond when a known person is recognized
 function startFaceRecognition() {
@@ -112,19 +118,18 @@ function startFaceRecognition() {
     socket.onmessage = function(event) {
       console.log(event);
       var message = JSON.parse(event.data).message;
-      var payload = JSON.stringify(playThisSound);
       console.log(message);
       
-      if (message.personName && message.personName !== "unknown person") {
+      if (message && message.personName && message.personName !== "unknown person") {
         printToScreen("I think I know you. Is this " + message.personName + "?");
 
         //Add Custom Sounds here to play different sounds for different people!
         switch(message.personName) {
-          case "Person 1":
+          case "Person1":
             payload = JSON.stringify(knownPerson1);
             client.PostCommand("audio/play", payload);
             break;
-          case "Person 2":
+          case "Person2":
             payload = JSON.stringify(knownPerson2);
             client.PostCommand("audio/play", payload);
             break;
@@ -157,8 +162,13 @@ function startFaceRecognition() {
 //This function will stop Misty looking for a know person
 function stopFaceRecognition() {
   client.PostCommand("beta/faces/recognition/stop");
-  printToScreen("Face recognition stopped.");
-  socket.close();
+  
+  if(socket) {
+    socket.send(unsubscribeMessage);
+    printToScreen("Face recognition stopped.");  
+    //socket.close();
+  }
+
   messageCount = 0;
 }
 
